@@ -26,8 +26,10 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     keywords=['python', 'ynab', 'asyncio'],
     author='Aaron Godfrey',
@@ -35,7 +37,8 @@ setup(
         'aioynab',
     ],
     install_requires=[
-        'aiohttp >= 3.5.0, < 4.0.0'
+        'aiohttp >= 3.0.0, < 4.0.0',
+        'uvloop >= 0.12.0, < 0.13.0',
     ],
     extras_require={
         'docs': [
@@ -45,9 +48,10 @@ setup(
             'sphinxcontrib-httpdomain >= 1.5.0, < 2.0.0',
         ],
         'tests': [
+            'aioresponses',
             'coverage >= 4.4.1, < 5.0.0',
             'flake8 >= 3.3.0, < 4.0.0',
-            'pytest >= 3.3.2, < 4.0.0',
+            'pytest >= 4.0.0, < 5.0.0',
         ],
     },
 )
