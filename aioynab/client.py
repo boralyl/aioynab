@@ -78,7 +78,7 @@ class Client(object):
 
         return json['data']
 
-    async def user(self) -> Dict[str, str]:
+    async def user(self) -> dict:
         """Returns authenticated user information.
 
         Corresponds to the /user endpoint.
@@ -87,7 +87,7 @@ class Client(object):
         """
         return await self._request('/user', 'GET')
 
-    async def budgets(self) -> List[Dict[str, Any]]:
+    async def budgets(self) -> dict:
         """Returns budgets list with summary information.
 
         Corresponds to the /budgets endpoint.
@@ -97,13 +97,16 @@ class Client(object):
         return await self._request('/budgets', 'GET')
 
     async def budget(self, budget_id: str,
-                     last_knowledge_of_server: int = None) -> Dict[str, Any]:
+                     last_knowledge_of_server: int = None) -> dict:
         """Returns a single budget with all related entities.
 
         This resource is effectively a full budget export.  Corresponds to the
         /budget/{budget_id} endpoint.
 
         :param budget_id: The ID of the budget to look up.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
         :returns:
         """
         params = {}
@@ -111,3 +114,102 @@ class Client(object):
             params['last_knowledge_of_server'] = last_knowledge_of_server
         return await self._request(
             '/budgets/{}'.format(budget_id), 'GET', params)
+
+    async def budget_settings(self, budget_id: str) -> dict:
+        """Returns settings for a budget.
+
+        Corresponds to the /budget/{budget_id/settings endpont.
+
+        :param budget_id: The ID of the budget.
+        :returns: The budget settings data as a dict.
+        """
+        params = {}
+        if last_knowledge_of_server:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        return await self._request(
+            '/budgets/{}/settings'.format(budget_id), 'GET', params)
+
+    async def accounts(self, budget_id: str,
+                       last_knowledge_of_server: int = None) -> dict:
+        """Returns all accounts associated with the budget.
+
+        Corresponds to the /budget/{budget_id}/accounts endpoint.
+
+        :param budget_id: The ID of the budget to look up.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
+        :returns:
+        """
+        params = {}
+        if last_knowledge_of_server:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        return await self._request(
+            '/budgets/{}/accounts'.format(budget_id), 'GET', params)
+
+    async def account(self, budget_id: str, account_id: str) -> dict:
+        """Returns a single account associated with a budget.
+
+        Corresponds to the /budget/{budget_id}/accounts/{account_id} endpoint.
+
+        :param budget_id: The ID of the budget to look up.
+        :param account_id: The ID of the account.
+        :returns:
+        """
+        params = {}
+        if last_knowledge_of_server:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        return await self._request(
+            '/budgets/{}/accounts/{}'.format(budget_id, account_id), 'GET',
+            params)
+
+    async def categories(self, budget_id: str,
+                         last_knowledge_of_server: int = None) -> dict:
+        """Returns all categories grouped by category group.
+
+        Corresponds to the /budgets/{budget_id}/categories endpoint.
+
+        :param budget_id: The ID of the budget to look up.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
+        :returns:
+        """
+        params = {}
+        if last_knowledge_of_server:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        return await self._request(
+            '/budgets/{}/categories'.format(budget_id), 'GET', params)
+
+    async def category(self, budget_id: str, category_id: str) -> dict:
+        """Returns a single category.
+
+        Amounts (budgeted, activity, balance, etc.) are specific to the current
+        budget month (UTC). Corresponds to the
+        /budgets/{budget_id}/categories/{category_id} endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param category_id: The ID of the category.
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/categories/{}'.format(budget_id, category_id), 'GET')
+
+    async def category_month(
+            self, budget_id: str, category_id: str, month: str) -> dict:
+        """Returns a single category for a specific budget month.
+
+        Amounts (budgeted, activity, balance, etc.) are specific to the current
+        budget month (UTC).  Corresponds to the
+        /budgets/{budget_id}/months/{month}/categories/{category_id} endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param category_id: The ID of the category.
+        :param month: The budget month in ISO format (e.g. 2016-12-01)
+            ('current' can also be used to specify the current calendar month
+            (UTC)).
+        :returns:
+        """
+        url = '/budgets/{}/months/{}/categories/{}'.format(
+            budget_id, month, category_id)
+        return await self._request(url, 'GET')
