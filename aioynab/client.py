@@ -60,7 +60,7 @@ class Client(object):
         :param params: Any parameters to send with the request.
         :returns: The json data as a dict.
         """
-        url = '{}/{}'.format(BASE_URL, endpoint)
+        url = '{}{}'.format(BASE_URL, endpoint)
         try:
             response = await self.session.request(
                 method, url, params=params, headers=self.headers)
