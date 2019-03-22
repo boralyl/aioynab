@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import Any, Dict, List
 
 import aiohttp
 import uvloop
@@ -52,12 +51,13 @@ class Client(object):
         await self.session.close()
 
     async def _request(self, endpoint: str, method: str = 'GET',
-                       params: dict = None) -> dict:
+                       params: dict = None, body: dict = None) -> dict:
         """Performs a http request and returns the json response.
 
         :param endpoint: The API endpoint.
         :param method: The HTTP method to use (GET, POST, PUT).
         :param params: Any parameters to send with the request.
+        :param body: A json body to send with the request.
         :returns: The json data as a dict.
         """
         url = '{}{}'.format(BASE_URL, endpoint)
@@ -123,11 +123,8 @@ class Client(object):
         :param budget_id: The ID of the budget.
         :returns: The budget settings data as a dict.
         """
-        params = {}
-        if last_knowledge_of_server:
-            params['last_knowledge_of_server'] = last_knowledge_of_server
         return await self._request(
-            '/budgets/{}/settings'.format(budget_id), 'GET', params)
+            '/budgets/{}/settings'.format(budget_id), 'GET')
 
     async def accounts(self, budget_id: str,
                        last_knowledge_of_server: int = None) -> dict:
@@ -156,12 +153,8 @@ class Client(object):
         :param account_id: The ID of the account.
         :returns:
         """
-        params = {}
-        if last_knowledge_of_server:
-            params['last_knowledge_of_server'] = last_knowledge_of_server
         return await self._request(
-            '/budgets/{}/accounts/{}'.format(budget_id, account_id), 'GET',
-            params)
+            '/budgets/{}/accounts/{}'.format(budget_id, account_id), 'GET')
 
     async def categories(self, budget_id: str,
                          last_knowledge_of_server: int = None) -> dict:
@@ -213,3 +206,51 @@ class Client(object):
         url = '/budgets/{}/months/{}/categories/{}'.format(
             budget_id, month, category_id)
         return await self._request(url, 'GET')
+
+    async def update_category_month(
+            self, budget_id: str, category_id: str, month: str,
+            data: dict) -> dict:
+        """Updates a category for a specific month.
+
+        Corresponds to the
+        /budgets/{budget_id}/months/{month}/categories/{category_id} endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param category_id: The ID of the category.
+        :param month: The budget month in ISO format (e.g. 2016-12-01)
+            ('current' can also be used to specify the current calendar month
+            (UTC)).
+        :param data: A dict containing the fields/values to update.
+        :returns:
+        """
+        url = '/budgets/{}/months/{}/categories/{}'.format(
+            budget_id, month, category_id)
+        return await self._request(url, 'PATCH', body=data)
+
+    async def payees(self, budget_id: str,
+                     last_knowledge_of_server: int = None) -> dict:
+        """Returns all payees.
+
+        Corresponds to the /budgets/{budget_id}/payees endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
+        :returns:
+        """
+        params = {}
+        if last_knowledge_of_server:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        return await self._request(
+            '/budgets/{}/payees'.format(budget_id), 'GET', params)
+
+    async def payee(self, budget_id: str, payee_id: str) -> dict:
+        """Returns single payee.
+
+        :param budget_id: The ID of the budget.
+        :param payee_id: The ID of the payee.
+        :returns:
+        """
+        return self._request(
+            '/budgets/{}/payees/{}'.format(budget_id, payee_id), 'GET')
