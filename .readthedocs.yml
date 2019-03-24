@@ -1,6 +1,9 @@
 python:
-extra_requirements:
-  - docs
-  - tests
-pip_install: true
-version: 3
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+        - tests
+  version: 3
+version: 2
