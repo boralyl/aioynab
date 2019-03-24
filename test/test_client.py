@@ -92,3 +92,61 @@ def test_budgets(client):
         mock_req.get(BASE_URL + '/budgets', payload=mock_res)
         actual = client.loop.run_until_complete(client.budgets())
         assert mock_res['data'] == actual
+
+
+def test_budget(client):
+    mock_res = {
+        'data': {
+            'budget': {}
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}'.format(budget_id),
+                     payload=mock_res)
+        actual = client.loop.run_until_complete(client.budget(budget_id))
+        assert mock_res['data'] == actual
+
+
+def test_budget_settings(client):
+    mock_res = {
+        'data': {
+            'settings': {}
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/settings'.format(budget_id),
+                     payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.budget_settings(budget_id))
+        assert mock_res['data'] == actual
+
+
+def test_accounts(client):
+    mock_res = {
+        'data': {
+            'accounts': []
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/accounts'.format(budget_id),
+                     payload=mock_res)
+        actual = client.loop.run_until_complete(client.accounts(budget_id))
+        assert mock_res['data'] == actual
+
+
+def test_account(client):
+    mock_res = {
+        'data': {
+            'account': {}
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = account_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/accounts/{}'.format(
+            budget_id, account_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.account(budget_id, account_id))
+        assert mock_res['data'] == actual
