@@ -252,5 +252,5 @@ class Client(object):
         :param payee_id: The ID of the payee.
         :returns:
         """
-        return self._request(
+        return await self._request(
             '/budgets/{}/payees/{}'.format(budget_id, payee_id), 'GET')

@@ -150,3 +150,101 @@ def test_account(client):
         actual = client.loop.run_until_complete(
             client.account(budget_id, account_id))
         assert mock_res['data'] == actual
+
+
+def test_categories(client):
+    mock_res = {
+        'data': {
+            'category_groups': []
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/categories'.format(budget_id),
+                     payload=mock_res)
+        actual = client.loop.run_until_complete(client.categories(budget_id))
+        assert mock_res['data'] == actual
+
+
+def test_category(client):
+    mock_res = {
+        'data': {
+            'category': {}
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = category_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/categories/{}'.format(
+            budget_id, category_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.category(budget_id, category_id))
+        assert mock_res['data'] == actual
+
+
+def test_category_month(client):
+    mock_res = {
+        'data': {
+            'category': {}
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = category_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        month = '2018-01-01'
+        endpoint = '/budgets/{}/months/{}/categories/{}'.format(
+            budget_id, month, category_id)
+        mock_req.get(BASE_URL + endpoint, payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.category_month(budget_id, category_id, month))
+        assert mock_res['data'] == actual
+
+
+def test_update_category_month(client):
+    mock_res = {
+        'data': {
+            'category': {}
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = category_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        month = '2018-01-01'
+        data = {
+            'category': {
+                'budgeted': 0,
+            },
+        }
+        endpoint = '/budgets/{}/months/{}/categories/{}'.format(
+            budget_id, month, category_id)
+        mock_req.patch(BASE_URL + endpoint, payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.update_category_month(budget_id, category_id, month, data))
+        assert mock_res['data'] == actual
+
+
+def test_payees(client):
+    mock_res = {
+        'data': {
+            'payees': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/payees'.format(budget_id),
+                     payload=mock_res)
+        actual = client.loop.run_until_complete(client.payees(budget_id))
+        assert mock_res['data'] == actual
+
+
+def test_payee(client):
+    mock_res = {
+        'data': {
+            'payee': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = payee_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(
+            BASE_URL + '/budgets/{}/payees/{}'.format(budget_id, payee_id),
+            payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.payee(budget_id, payee_id))
+        assert mock_res['data'] == actual
