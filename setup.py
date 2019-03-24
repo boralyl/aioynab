@@ -9,7 +9,7 @@ with open(version_filename, 'r') as vf:
     exec(compile(vf.read(), version_filename, 'exec'), globals(), locals())
 
 readme_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'README.md'))
+    os.path.join(os.path.dirname(__file__), 'README.rst'))
 with open(readme_path, 'r') as fp:
     long_description = fp.read()
 
@@ -19,7 +19,7 @@ setup(
     description=('This module provides a YNAB API client implemented using '
                  'python 3 asyncio.'),
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type='text/x-rst',
     url='https://github.com/boralyl/aioynab',
     license='MIT',
     classifiers=[

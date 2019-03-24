@@ -133,7 +133,7 @@ def test_accounts(client):
         budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
         mock_req.get(BASE_URL + '/budgets/{}/accounts'.format(budget_id),
                      payload=mock_res)
-        actual = client.loop.run_until_complete(client.accounts(budget_id))
+        actual = client.loop.run_until_complete(client.accounts(budget_id, 0))
         assert mock_res['data'] == actual
 
 
