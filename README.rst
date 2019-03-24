@@ -4,6 +4,18 @@ aioynab
 
 YNAB_ API client implemented using python 3 asyncio.
 
+Install
+-------
+
+doctor can easily be installed using pip:
+
+.. code-block:: bash
+
+    $ pip install aioynab
+
+Quick Start
+-----------
+
 .. _ynab: https://api.youneedabudget.com/
 
 .. |build| image:: https://api.travis-ci.com/boralyl/aioynab.svg?branch=master
