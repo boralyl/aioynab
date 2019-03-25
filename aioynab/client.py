@@ -110,7 +110,7 @@ class Client(object):
         :returns:
         """
         params = {}
-        if last_knowledge_of_server:
+        if last_knowledge_of_server is not None:
             params['last_knowledge_of_server'] = last_knowledge_of_server
         return await self._request(
             '/budgets/{}'.format(budget_id), 'GET', params)
@@ -139,7 +139,7 @@ class Client(object):
         :returns:
         """
         params = {}
-        if last_knowledge_of_server:
+        if last_knowledge_of_server is not None:
             params['last_knowledge_of_server'] = last_knowledge_of_server
         return await self._request(
             '/budgets/{}/accounts'.format(budget_id), 'GET', params)
@@ -169,7 +169,7 @@ class Client(object):
         :returns:
         """
         params = {}
-        if last_knowledge_of_server:
+        if last_knowledge_of_server is not None:
             params['last_knowledge_of_server'] = last_knowledge_of_server
         return await self._request(
             '/budgets/{}/categories'.format(budget_id), 'GET', params)
@@ -254,3 +254,35 @@ class Client(object):
         """
         return await self._request(
             '/budgets/{}/payees/{}'.format(budget_id, payee_id), 'GET')
+
+    async def payee_locations(self, budget_id: str) -> dict:
+        """Returns all payee locations.
+
+        :param budget_id: The ID of the budget.
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/payee_locations'.format(budget_id), 'GET')
+
+    async def payee_location(
+            self, budget_id: str, payee_location_id: str) -> dict:
+        """Returns all payee locations.
+
+        :param budget_id: The ID of the budget.
+        :param payee_location_id: The ID of the payee location.
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/payee_locations/{}'.format(
+                budget_id, payee_location_id), 'GET')
+
+    async def locations_payee(self, budget_id: str, payee_id: str) -> dict:
+        """Returns all payee locations for the specified payee.
+
+        :param budget_id: The ID of the budget.
+        :param payee_id: The ID of the payee.
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/payees/{}/payee_locations'.format(budget_id, payee_id),
+            'GET')

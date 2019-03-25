@@ -102,9 +102,10 @@ def test_budget(client):
     }
     with aioresponses() as mock_req:
         budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
-        mock_req.get(BASE_URL + '/budgets/{}'.format(budget_id),
-                     payload=mock_res)
-        actual = client.loop.run_until_complete(client.budget(budget_id))
+        mock_req.get(
+            BASE_URL + '/budgets/{}?last_knowledge_of_server=2'.format(
+                budget_id), payload=mock_res)
+        actual = client.loop.run_until_complete(client.budget(budget_id, 2))
         assert mock_res['data'] == actual
 
 
@@ -131,9 +132,10 @@ def test_accounts(client):
     }
     with aioresponses() as mock_req:
         budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
-        mock_req.get(BASE_URL + '/budgets/{}/accounts'.format(budget_id),
-                     payload=mock_res)
-        actual = client.loop.run_until_complete(client.accounts(budget_id, 0))
+        mock_req.get(
+            BASE_URL + '/budgets/{}/accounts?last_knowledge_of_server=2'.format(
+                budget_id), payload=mock_res)
+        actual = client.loop.run_until_complete(client.accounts(budget_id, 2))
         assert mock_res['data'] == actual
 
 
@@ -160,9 +162,10 @@ def test_categories(client):
     }
     with aioresponses() as mock_req:
         budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
-        mock_req.get(BASE_URL + '/budgets/{}/categories'.format(budget_id),
-                     payload=mock_res)
-        actual = client.loop.run_until_complete(client.categories(budget_id))
+        url = '{}/budgets/{}/categories?last_knowledge_of_server=1'.format(
+            BASE_URL, budget_id)
+        mock_req.get(url, payload=mock_res)
+        actual = client.loop.run_until_complete(client.categories(budget_id, 1))
         assert mock_res['data'] == actual
 
 
@@ -228,9 +231,10 @@ def test_payees(client):
     }
     with aioresponses() as mock_req:
         budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
-        mock_req.get(BASE_URL + '/budgets/{}/payees'.format(budget_id),
-                     payload=mock_res)
-        actual = client.loop.run_until_complete(client.payees(budget_id))
+        mock_req.get(
+            BASE_URL + '/budgets/{}/payees?last_knowledge_of_server=1'.format(
+                budget_id), payload=mock_res)
+        actual = client.loop.run_until_complete(client.payees(budget_id, 1))
         assert mock_res['data'] == actual
 
 
@@ -247,4 +251,52 @@ def test_payee(client):
             payload=mock_res)
         actual = client.loop.run_until_complete(
             client.payee(budget_id, payee_id))
+        assert mock_res['data'] == actual
+
+
+def test_payee_locations(client):
+    mock_res = {
+        'data': {
+            'payee_locations': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(
+            BASE_URL + '/budgets/{}/payee_locations'.format(budget_id),
+            payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.payee_locations(budget_id))
+        assert mock_res['data'] == actual
+
+
+def test_payee_location(client):
+    mock_res = {
+        'data': {
+            'payee_location': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = payee_loc_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(
+            BASE_URL + '/budgets/{}/payee_locations/{}'.format(
+                budget_id, payee_loc_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.payee_location(budget_id, payee_loc_id))
+        assert mock_res['data'] == actual
+
+
+def test_locations_payee(client):
+    mock_res = {
+        'data': {
+            'payee_locations': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = payee_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(
+            BASE_URL + '/budgets/{}/payees/{}/payee_locations'.format(
+                budget_id, payee_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.locations_payee(budget_id, payee_id))
         assert mock_res['data'] == actual

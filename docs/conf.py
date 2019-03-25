@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'aioynab'
-copyright = datetime.now().year
+copyright = str(datetime.now().year)
 
 # The version info for the project yo're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
