@@ -25,7 +25,12 @@ Quick Start
 
     loop = asyncio.get_event_loop()
     client = Client('ynab-api-key')
-    print(loop.run_until_complete(client.budgets()))
+    budgets = loop.run_until_complete(client.budgets()))
+    budget_id = budgets['budgets'][0]['budget_id']
+    accounts = loop.run_until_complete(client.accounts(budget_id))
+    account_id = accounts['accounts'][0]['account_id']
+    transactions = loop.run_until_complete(client.account_transactions(budget_id, account_id))
+
 
 .. _ynab: https://api.youneedabudget.com/
 
