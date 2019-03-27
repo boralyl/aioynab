@@ -300,3 +300,267 @@ def test_locations_payee(client):
         actual = client.loop.run_until_complete(
             client.locations_payee(budget_id, payee_id))
         assert mock_res['data'] == actual
+
+
+def test_budget_months(client):
+    mock_res = {
+        'data': {
+            'months': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(
+            BASE_URL + '/budgets/{}/months?last_knowledge_of_server=1'.format(
+                budget_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.budget_months(budget_id, 1))
+        assert mock_res['data'] == actual
+
+
+def test_budget_month(client):
+    mock_res = {
+        'data': {
+            'month': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        month = '2018-01-01'
+        mock_req.get(
+            BASE_URL + '/budgets/{}/months/{}'.format(budget_id, month),
+            payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.budget_month(budget_id, month))
+        assert mock_res['data'] == actual
+
+
+def test_transactions(client):
+    mock_res = {
+        'data': {
+            'transactions': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        since_date = '2018-01-01'
+        type = 'unapproved'
+        url = (BASE_URL + '/budgets/{}/transactions?last_knowledge_of_server=1&'
+               'since_date=2018-01-01&type=unapproved'.format(budget_id))
+        mock_req.get(url, payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.transactions(budget_id, since_date, type, 1))
+        assert mock_res['data'] == actual
+
+
+def test_create_transactions_no_transaction_provided(client):
+    budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+    with pytest.raises(ValueError, match='Must specify one of'):
+        client.loop.run_until_complete(client.create_transactions(budget_id))
+
+
+def test_create_transactions_both_params_provided(client):
+    budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+    with pytest.raises(ValueError, match='Only one of transaction or'):
+        client.loop.run_until_complete(
+            client.create_transactions(budget_id, transaction={'foo': 'bar'},
+                                       transactions=[{'foo': 'bar'}]))
+
+
+def test_create_transactions_one_transaction(client):
+    mock_res = {
+        'data': {
+            'transaction': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        transaction = {'memo': 'food'}
+        mock_req.post(BASE_URL + '/budgets/{}/transactions'.format(budget_id),
+                      payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.create_transactions(budget_id, transaction))
+        assert mock_res['data'] == actual
+
+
+def test_create_transactions_multiple_transactions(client):
+    mock_res = {
+        'data': {
+            'transactions': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        transactions = [{'memo': 'food'}]
+        mock_req.post(BASE_URL + '/budgets/{}/transactions'.format(budget_id),
+                      payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.create_transactions(budget_id, transactions=transactions))
+        assert mock_res['data'] == actual
+
+
+def test_update_transactions_no_transaction_provided(client):
+    budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+    with pytest.raises(ValueError, match='Must specify one of'):
+        client.loop.run_until_complete(client.update_transactions(budget_id))
+
+
+def test_update_transactions_both_params_provided(client):
+    budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+    with pytest.raises(ValueError, match='Only one of transaction or'):
+        client.loop.run_until_complete(
+            client.update_transactions(budget_id, transaction={'foo': 'bar'},
+                                       transactions=[{'foo': 'bar'}]))
+
+
+def test_update_transactions_one_transaction(client):
+    mock_res = {
+        'data': {
+            'transaction': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        transaction = {'memo': 'food'}
+        mock_req.patch(BASE_URL + '/budgets/{}/transactions'.format(budget_id),
+                       payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.update_transactions(budget_id, transaction))
+        assert mock_res['data'] == actual
+
+
+def test_update_transactions_multiple_transactions(client):
+    mock_res = {
+        'data': {
+            'transactions': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        transactions = [{'memo': 'food'}]
+        mock_req.patch(BASE_URL + '/budgets/{}/transactions'.format(budget_id),
+                       payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.update_transactions(budget_id, transactions=transactions))
+        assert mock_res['data'] == actual
+
+
+def test_get_transaction(client):
+    mock_res = {
+        'data': {
+            'transaction': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = transaction_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/transactions/{}'.format(
+            budget_id, transaction_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.transaction(budget_id, transaction_id))
+        assert mock_res['data'] == actual
+
+
+def test_update_transaction(client):
+    mock_res = {
+        'data': {
+            'transaction': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = transaction_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        data = {'transaction': {}}
+        mock_req.put(BASE_URL + '/budgets/{}/transactions/{}'.format(
+            budget_id, transaction_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.update_transaction(budget_id, transaction_id, data))
+        assert mock_res['data'] == actual
+
+
+def test_account_transactions(client):
+    mock_res = {
+        'data': {
+            'transactions': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = account_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        since_date = '2019-01-01'
+        type = 'unapproved'
+        url = (BASE_URL + '/budgets/{}/accounts/{}/transactions?'
+               'last_knowledge_of_server=1&since_date=2019-01-01&'
+               'type=unapproved'.format(budget_id, account_id))
+        mock_req.get(url, payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.account_transactions(
+                budget_id, account_id, since_date, type, 1))
+        assert mock_res['data'] == actual
+
+
+def test_category_transactions(client):
+    mock_res = {
+        'data': {
+            'transactions': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = category_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        since_date = '2019-01-01'
+        type = 'unapproved'
+        url = (BASE_URL + '/budgets/{}/categories/{}/transactions?'
+               'last_knowledge_of_server=1&since_date=2019-01-01&'
+               'type=unapproved'.format(budget_id, category_id))
+        mock_req.get(url, payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.category_transactions(
+                budget_id, category_id, since_date, type, 1))
+        assert mock_res['data'] == actual
+
+
+def test_payee_transactions(client):
+    mock_res = {
+        'data': {
+            'transactions': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = payee_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        since_date = '2019-01-01'
+        type = 'unapproved'
+        url = (BASE_URL + '/budgets/{}/payees/{}/transactions?'
+               'last_knowledge_of_server=1&since_date=2019-01-01&'
+               'type=unapproved'.format(budget_id, payee_id))
+        mock_req.get(url, payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.payee_transactions(
+                budget_id, payee_id, since_date, type, 1))
+        assert mock_res['data'] == actual
+
+
+def test_scheduled_transactions(client):
+    mock_res = {
+        'data': {
+            'scheduled_transactions': [],
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/scheduled_transactions'.format(
+            budget_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.scheduled_transactions(budget_id))
+        assert mock_res['data'] == actual
+
+
+def test_scheduled_transaction(client):
+    mock_res = {
+        'data': {
+            'scheduled_transaction': {},
+        },
+    }
+    with aioresponses() as mock_req:
+        budget_id = transaction_id = '01234567-012a-3fe0-abc1-9e123456789c'
+        mock_req.get(BASE_URL + '/budgets/{}/scheduled_transactions/{}'.format(
+            budget_id, transaction_id), payload=mock_res)
+        actual = client.loop.run_until_complete(
+            client.scheduled_transaction(budget_id, transaction_id))
+        assert mock_res['data'] == actual

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import List
 
 import aiohttp
 import uvloop
@@ -63,7 +64,7 @@ class Client(object):
         url = '{}{}'.format(BASE_URL, endpoint)
         try:
             response = await self.session.request(
-                method, url, params=params, headers=self.headers)
+                method, url, params=params, json=body, headers=self.headers)
         except aiohttp.ClientError:
             logging.exception('Error requesting %s %s', method, url)
             raise
@@ -248,6 +249,8 @@ class Client(object):
     async def payee(self, budget_id: str, payee_id: str) -> dict:
         """Returns single payee.
 
+        Corresponds to the /budgets/{budget_id}/payees/{payee_id} endpoint.
+
         :param budget_id: The ID of the budget.
         :param payee_id: The ID of the payee.
         :returns:
@@ -258,6 +261,8 @@ class Client(object):
     async def payee_locations(self, budget_id: str) -> dict:
         """Returns all payee locations.
 
+        Corresponds to the /budgets/{budget_id}/payee_locations endpoint.
+
         :param budget_id: The ID of the budget.
         :returns:
         """
@@ -267,6 +272,9 @@ class Client(object):
     async def payee_location(
             self, budget_id: str, payee_location_id: str) -> dict:
         """Returns all payee locations.
+
+        Corresponds to the
+        /budgets/{budget_id}/payee_locations/{payee_location_id} endpoint.
 
         :param budget_id: The ID of the budget.
         :param payee_location_id: The ID of the payee location.
@@ -279,6 +287,9 @@ class Client(object):
     async def locations_payee(self, budget_id: str, payee_id: str) -> dict:
         """Returns all payee locations for the specified payee.
 
+        Corresponds to the
+        /budgets/{budget_id}/payees/{payee_id}/payee_locations endpoint.
+
         :param budget_id: The ID of the budget.
         :param payee_id: The ID of the payee.
         :returns:
@@ -286,3 +297,270 @@ class Client(object):
         return await self._request(
             '/budgets/{}/payees/{}/payee_locations'.format(budget_id, payee_id),
             'GET')
+
+    async def budget_months(
+            self, budget_id: str, last_knowledge_of_server: int) -> dict:
+        """Returns all budget months.
+
+        Corresponds to the /budgets/{budget_id}/months endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
+        :returns:
+        """
+        params = {}
+        if last_knowledge_of_server is not None:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        return await self._request(
+            '/budgets/{}/months'.format(budget_id), 'GET', params)
+
+    async def budget_month(self, budget_id: str, month: str) -> dict:
+        """Returns a single budget month.
+
+        Corresponds to the /budgets/{budget_id}/months/{month} endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param month: The budget month in ISO format (e.g. 2016-12-01)
+            ('current' can also be used to specify the current calendar month
+            (UTC)).
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/months/{}'.format(budget_id, month), 'GET')
+
+    async def transactions(
+            self, budget_id: str, since_date: str = None, type: str = None,
+            last_knowledge_of_server: int = None) -> dict:
+        """Returns budget transactions.
+
+        :param budget_id: The ID of the budget.
+        :param since_date: If specified, only transactions on or after this
+            date will be included. The date should be ISO formatted
+            (e.g. 2016-12-30).
+        :param type: If specified, only transactions of the specified type will
+            be included. 'uncategorized'and 'unapproved' are currently
+            supported.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
+        """
+        params = {}
+        if last_knowledge_of_server is not None:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        if since_date is not None:
+            params['since_date'] = since_date
+        if type is not None:
+            params['type'] = type
+        return await self._request(
+            '/budgets/{}/transactions'.format(budget_id), 'GET', params)
+
+    async def create_transactions(
+            self, budget_id: str, transaction: dict = None,
+            transactions: List[dict] = None) -> dict:
+        """Creates a single transaction or multiple transactions.
+
+        One of transaction or transactions must be specified, but not both.
+        Corresponds to the /budgets/{budget_id}/transactions endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param transaction: The transaction to create.
+        :param transactions: The list of transactions to create.
+        :returns:
+        :raises ValueError: If both transaction and transactions are provided or
+            neither are provided.
+        """
+        if not transaction and not transactions:
+            raise ValueError('Must specify one of transaction or transactions.')
+        if transaction and transactions:
+            raise ValueError('Only one of transaction or transactions can be '
+                             'specified, not both.')
+
+        if transaction is not None:
+            data = {'transaction': transaction}
+        elif transactions is not None:
+            data = {'transactions': transactions}
+        return await self._request(
+            '/budgets/{}/transactions'.format(budget_id), 'POST', body=data)
+
+    async def update_transactions(
+            self, budget_id: str, transaction: dict = None,
+            transactions: List[dict] = None) -> dict:
+        """Updates multiple transactions, by 'id' or 'import_id'.
+
+        One of transaction or transactions must be specified, but not both.
+        Corresponds to the /budgets/{budget_id}/transactions endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param transaction: The transaction to update.
+        :param transactions: The list of transactions to updates.
+        :returns:
+        :raises ValueError: If both transaction and transactions are provided or
+            neither are provided.
+        """
+        if not transaction and not transactions:
+            raise ValueError('Must specify one of transaction or transactions.')
+        if transaction and transactions:
+            raise ValueError('Only one of transaction or transactions can be '
+                             'specified, not both.')
+
+        if transaction is not None:
+            data = {'transaction': transaction}
+        elif transactions is not None:
+            data = {'transactions': transactions}
+        return await self._request(
+            '/budgets/{}/transactions'.format(budget_id), 'PATCH', body=data)
+
+    async def transaction(self, budget_id: str, transaction_id: str) -> dict:
+        """Returns a single transaction.
+
+        Corresponds to the /budgets/{budget_id}/transactions/{transaction_id}
+        endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param transaction_id: The ID of the transaction.
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/transactions/{}'.format(budget_id, transaction_id),
+            'GET')
+
+    async def update_transaction(
+            self, budget_id: str, transaction_id: str, data: dict) -> dict:
+        """Updates a single transaction.
+
+        Corresponds to the /budgets/{budget_id}/transactions/{transaction_id}
+        endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param transaction_id: The ID of the transaction.
+        :param data: A dict containing the fields/values to update.
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/transactions/{}'.format(budget_id, transaction_id),
+            'PUT', body=data)
+
+    async def account_transactions(
+            self, budget_id: str, account_id: str, since_date: str = None,
+            type: str = None, last_knowledge_of_server: int = None) -> dict:
+        """Returns all transactions for a specified account.
+
+        Corresponds to the
+        /budgets/{budget_id}/accounts/{account_id}/transactions endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param account_id: The ID of the account.
+        :param since_date: If specified, only transactions on or after this
+            date will be included. The date should be ISO formatted
+            (e.g. 2016-12-30).
+        :param type: If specified, only transactions of the specified type will
+            be included. 'uncategorized'and 'unapproved' are currently
+            supported.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
+        :returns:
+        """
+        params = {}
+        if last_knowledge_of_server is not None:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        if since_date is not None:
+            params['since_date'] = since_date
+        if type is not None:
+            params['type'] = type
+        return await self._request(
+            '/budgets/{}/accounts/{}/transactions'.format(
+                budget_id, account_id), 'GET', params)
+
+    async def category_transactions(
+            self, budget_id: str, category_id: str, since_date: str = None,
+            type: str = None, last_knowledge_of_server: int = None) -> dict:
+        """Returns all transactions for a specified category.
+
+        Corresponds to the
+        /budgets/{budget_id}/categories/{category_id}/transactions endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param category_id: The ID of the category.
+        :param since_date: If specified, only transactions on or after this
+            date will be included. The date should be ISO formatted
+            (e.g. 2016-12-30).
+        :param type: If specified, only transactions of the specified type will
+            be included. 'uncategorized'and 'unapproved' are currently
+            supported.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
+        :returns:
+        """
+        params = {}
+        if last_knowledge_of_server is not None:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        if since_date is not None:
+            params['since_date'] = since_date
+        if type is not None:
+            params['type'] = type
+        return await self._request(
+            '/budgets/{}/categories/{}/transactions'.format(
+                budget_id, category_id), 'GET', params)
+
+    async def payee_transactions(
+            self, budget_id: str, payee_id: str, since_date: str = None,
+            type: str = None, last_knowledge_of_server: int = None) -> dict:
+        """Returns all transactions for a specified payee.
+
+        Corresponds to the
+        /budgets/{budget_id}/payees/{payee_id}/transactions endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param payee_id: The ID of the payee.
+        :param since_date: If specified, only transactions on or after this
+            date will be included. The date should be ISO formatted
+            (e.g. 2016-12-30).
+        :param type: If specified, only transactions of the specified type will
+            be included. 'uncategorized'and 'unapproved' are currently
+            supported.
+        :param last_knowledge_of_server: The starting server knowledge. If
+            provided, only entities that have changed since
+            last_knowledge_of_server will be included.
+        :returns:
+        """
+        params = {}
+        if last_knowledge_of_server is not None:
+            params['last_knowledge_of_server'] = last_knowledge_of_server
+        if since_date is not None:
+            params['since_date'] = since_date
+        if type is not None:
+            params['type'] = type
+        return await self._request(
+            '/budgets/{}/payees/{}/transactions'.format(
+                budget_id, payee_id), 'GET', params)
+
+    async def scheduled_transactions(self, budget_id: str) -> dict:
+        """Returns all scheduled transactions.
+
+        Corresponds to the /budgets/{budget_id}/scheduled_transactions endpoint.
+
+        :param budget_id: The ID of the budget.
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/scheduled_transactions'.format(budget_id), 'GET')
+
+    async def scheduled_transaction(
+            self, budget_id: str, scheduled_transaction_id: str) -> dict:
+        """Returns all scheduled transactions.
+
+        Corresponds to the
+        /budgets/{budget_id}/scheduled_transactions/{scheduled_transaction_id}
+        endpoint.
+
+        :param budget_id: The ID of the budget.
+        :param scheduled_transaction_id: The ID of the scheduled transaction.
+        :returns:
+        """
+        return await self._request(
+            '/budgets/{}/scheduled_transactions/{}'.format(
+                budget_id, scheduled_transaction_id), 'GET')
