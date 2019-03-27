@@ -7,7 +7,7 @@ YNAB_ API client implemented using python 3 asyncio.
 Install
 -------
 
-doctor can easily be installed using pip:
+aioynab can easily be installed using pip:
 
 .. code-block:: bash
 
@@ -15,6 +15,17 @@ doctor can easily be installed using pip:
 
 Quick Start
 -----------
+
+.. code-block:: python
+
+    import asyncio
+
+    from aioynab.client import Client
+
+
+    loop = asyncio.get_event_loop()
+    client = Client('ynab-api-key')
+    print(loop.run_until_complete(client.budgets()))
 
 .. _ynab: https://api.youneedabudget.com/
 
