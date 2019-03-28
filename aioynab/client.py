@@ -61,6 +61,7 @@ class Client(object):
         :param params: Any parameters to send with the request.
         :param body: A json body to send with the request.
         :returns: The json data as a dict.
+        :raises YNABAPIError: If there is an api error.
         """
         url = '{}{}'.format(BASE_URL, endpoint)
         try:
@@ -81,7 +82,6 @@ class Client(object):
             except ValueError:
                 logging.exception('Error parsing response as json: %s', text)
                 raise
-
         if response.status >= 400 or 'error' in data:
             # @TODO: X-Rate-Limit header does not appear to be returned in
             # the response headers when a 429 error occurs.  Open a ticket and
@@ -97,18 +97,18 @@ class Client(object):
     async def user(self) -> dict:
         """Returns authenticated user information.
 
-        Corresponds to the /user endpoint.
+        Corresponds to the `/user` endpoint.
 
-        :returns:
+        :returns: A dict with user data.
         """
         return await self._request('/user', 'GET')
 
     async def budgets(self) -> dict:
         """Returns budgets list with summary information.
 
-        Corresponds to the /budgets endpoint.
+        Corresponds to the `/budgets` endpoint.
 
-        :reutrns:
+        :reutrns: A dict containing all budgets.
         """
         return await self._request('/budgets', 'GET')
 
@@ -117,13 +117,13 @@ class Client(object):
         """Returns a single budget with all related entities.
 
         This resource is effectively a full budget export.  Corresponds to the
-        /budget/{budget_id} endpoint.
+        `/budget/{budget_id}` endpoint.
 
         :param budget_id: The ID of the budget to look up.
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
-        :returns:
+        :returns: A dict containing the requested budget.
         """
         params = {}
         if last_knowledge_of_server is not None:
@@ -134,7 +134,7 @@ class Client(object):
     async def budget_settings(self, budget_id: str) -> dict:
         """Returns settings for a budget.
 
-        Corresponds to the /budget/{budget_id/settings endpont.
+        Corresponds to the `/budget/{budget_id/settings` endpont.
 
         :param budget_id: The ID of the budget.
         :returns: The budget settings data as a dict.
@@ -146,13 +146,13 @@ class Client(object):
                        last_knowledge_of_server: int = None) -> dict:
         """Returns all accounts associated with the budget.
 
-        Corresponds to the /budget/{budget_id}/accounts endpoint.
+        Corresponds to the `/budget/{budget_id}/accounts` endpoint.
 
         :param budget_id: The ID of the budget to look up.
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
-        :returns:
+        :returns: A dict containing all accounts.
         """
         params = {}
         if last_knowledge_of_server is not None:
@@ -163,11 +163,11 @@ class Client(object):
     async def account(self, budget_id: str, account_id: str) -> dict:
         """Returns a single account associated with a budget.
 
-        Corresponds to the /budget/{budget_id}/accounts/{account_id} endpoint.
+        Corresponds to the `/budget/{budget_id}/accounts/{account_id}` endpoint.
 
         :param budget_id: The ID of the budget to look up.
         :param account_id: The ID of the account.
-        :returns:
+        :returns: A dict of the account.
         """
         return await self._request(
             '/budgets/{}/accounts/{}'.format(budget_id, account_id), 'GET')
@@ -176,13 +176,13 @@ class Client(object):
                          last_knowledge_of_server: int = None) -> dict:
         """Returns all categories grouped by category group.
 
-        Corresponds to the /budgets/{budget_id}/categories endpoint.
+        Corresponds to the `/budgets/{budget_id}/categories` endpoint.
 
         :param budget_id: The ID of the budget to look up.
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
-        :returns:
+        :returns: A dict of all categories.
         """
         params = {}
         if last_knowledge_of_server is not None:
@@ -195,11 +195,11 @@ class Client(object):
 
         Amounts (budgeted, activity, balance, etc.) are specific to the current
         budget month (UTC). Corresponds to the
-        /budgets/{budget_id}/categories/{category_id} endpoint.
+        `/budgets/{budget_id}/categories/{category_id}` endpoint.
 
         :param budget_id: The ID of the budget.
         :param category_id: The ID of the category.
-        :returns:
+        :returns: A dict of the requested category.
         """
         return await self._request(
             '/budgets/{}/categories/{}'.format(budget_id, category_id), 'GET')
@@ -210,14 +210,14 @@ class Client(object):
 
         Amounts (budgeted, activity, balance, etc.) are specific to the current
         budget month (UTC).  Corresponds to the
-        /budgets/{budget_id}/months/{month}/categories/{category_id} endpoint.
+        `/budgets/{budget_id}/months/{month}/categories/{category_id}` endpoint.
 
         :param budget_id: The ID of the budget.
         :param category_id: The ID of the category.
         :param month: The budget month in ISO format (e.g. 2016-12-01)
             ('current' can also be used to specify the current calendar month
             (UTC)).
-        :returns:
+        :returns: A dict for the specified category and month.
         """
         url = '/budgets/{}/months/{}/categories/{}'.format(
             budget_id, month, category_id)
@@ -229,7 +229,7 @@ class Client(object):
         """Updates a category for a specific month.
 
         Corresponds to the
-        /budgets/{budget_id}/months/{month}/categories/{category_id} endpoint.
+        `/budgets/{budget_id}/months/{month}/categories/{category_id}` endpoint.
 
         :param budget_id: The ID of the budget.
         :param category_id: The ID of the category.
@@ -237,8 +237,9 @@ class Client(object):
             ('current' can also be used to specify the current calendar month
             (UTC)).
         :param data: A dict containing the fields/values to update.
-        :returns:
+        :returns: A dict of the category for the month.
         """
+        data = {'category': data}
         url = '/budgets/{}/months/{}/categories/{}'.format(
             budget_id, month, category_id)
         return await self._request(url, 'PATCH', body=data)
@@ -247,13 +248,13 @@ class Client(object):
                      last_knowledge_of_server: int = None) -> dict:
         """Returns all payees.
 
-        Corresponds to the /budgets/{budget_id}/payees endpoint.
+        Corresponds to the `/budgets/{budget_id}/payees` endpoint.
 
         :param budget_id: The ID of the budget.
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
-        :returns:
+        :returns: A dict of all payees.
         """
         params = {}
         if last_knowledge_of_server:
@@ -264,11 +265,11 @@ class Client(object):
     async def payee(self, budget_id: str, payee_id: str) -> dict:
         """Returns single payee.
 
-        Corresponds to the /budgets/{budget_id}/payees/{payee_id} endpoint.
+        Corresponds to the `/budgets/{budget_id}/payees/{payee_id}` endpoint.
 
         :param budget_id: The ID of the budget.
         :param payee_id: The ID of the payee.
-        :returns:
+        :returns: A dict of the requested payee.
         """
         return await self._request(
             '/budgets/{}/payees/{}'.format(budget_id, payee_id), 'GET')
@@ -276,10 +277,10 @@ class Client(object):
     async def payee_locations(self, budget_id: str) -> dict:
         """Returns all payee locations.
 
-        Corresponds to the /budgets/{budget_id}/payee_locations endpoint.
+        Corresponds to the `/budgets/{budget_id}/payee_locations` endpoint.
 
         :param budget_id: The ID of the budget.
-        :returns:
+        :returns: A dict of all payee locations.
         """
         return await self._request(
             '/budgets/{}/payee_locations'.format(budget_id), 'GET')
@@ -289,11 +290,11 @@ class Client(object):
         """Returns all payee locations.
 
         Corresponds to the
-        /budgets/{budget_id}/payee_locations/{payee_location_id} endpoint.
+        `/budgets/{budget_id}/payee_locations/{payee_location_id}` endpoint.
 
         :param budget_id: The ID of the budget.
         :param payee_location_id: The ID of the payee location.
-        :returns:
+        :returns: A dict of the requested payee location.
         """
         return await self._request(
             '/budgets/{}/payee_locations/{}'.format(
@@ -303,11 +304,11 @@ class Client(object):
         """Returns all payee locations for the specified payee.
 
         Corresponds to the
-        /budgets/{budget_id}/payees/{payee_id}/payee_locations endpoint.
+        `/budgets/{budget_id}/payees/{payee_id}/payee_locations` endpoint.
 
         :param budget_id: The ID of the budget.
         :param payee_id: The ID of the payee.
-        :returns:
+        :returns: A dict of locations for the requested payee.
         """
         return await self._request(
             '/budgets/{}/payees/{}/payee_locations'.format(budget_id, payee_id),
@@ -317,13 +318,13 @@ class Client(object):
             self, budget_id: str, last_knowledge_of_server: int = None) -> dict:
         """Returns all budget months.
 
-        Corresponds to the /budgets/{budget_id}/months endpoint.
+        Corresponds to the `/budgets/{budget_id}/months` endpoint.
 
         :param budget_id: The ID of the budget.
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
-        :returns:
+        :returns: A dict of all budget months.
         """
         params = {}
         if last_knowledge_of_server is not None:
@@ -334,13 +335,13 @@ class Client(object):
     async def budget_month(self, budget_id: str, month: str) -> dict:
         """Returns a single budget month.
 
-        Corresponds to the /budgets/{budget_id}/months/{month} endpoint.
+        Corresponds to the `/budgets/{budget_id}/months/{month}` endpoint.
 
         :param budget_id: The ID of the budget.
         :param month: The budget month in ISO format (e.g. 2016-12-01)
             ('current' can also be used to specify the current calendar month
             (UTC)).
-        :returns:
+        :returns: A dict for the requested budget month.
         """
         return await self._request(
             '/budgets/{}/months/{}'.format(budget_id, month), 'GET')
@@ -349,6 +350,8 @@ class Client(object):
             self, budget_id: str, since_date: str = None, type: str = None,
             last_knowledge_of_server: int = None) -> dict:
         """Returns budget transactions.
+
+        Corresponds to the `/budgets/{budget_id}/transactions` endpoint.
 
         :param budget_id: The ID of the budget.
         :param since_date: If specified, only transactions on or after this
@@ -360,6 +363,7 @@ class Client(object):
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
+        :returns: A dict of all transactions for the budget.
         """
         params = {}
         if last_knowledge_of_server is not None:
@@ -377,12 +381,12 @@ class Client(object):
         """Creates a single transaction or multiple transactions.
 
         One of transaction or transactions must be specified, but not both.
-        Corresponds to the /budgets/{budget_id}/transactions endpoint.
+        Corresponds to the `/budgets/{budget_id}/transactions` endpoint.
 
         :param budget_id: The ID of the budget.
         :param transaction: The transaction to create.
         :param transactions: The list of transactions to create.
-        :returns:
+        :returns: A dict of the created transaction(s).
         :raises ValueError: If both transaction and transactions are provided or
             neither are provided.
         """
@@ -405,12 +409,12 @@ class Client(object):
         """Updates multiple transactions, by 'id' or 'import_id'.
 
         One of transaction or transactions must be specified, but not both.
-        Corresponds to the /budgets/{budget_id}/transactions endpoint.
+        Corresponds to the `/budgets/{budget_id}/transactions` endpoint.
 
         :param budget_id: The ID of the budget.
         :param transaction: The transaction to update.
         :param transactions: The list of transactions to updates.
-        :returns:
+        :returns: A dict of the updated transaction(s).
         :raises ValueError: If both transaction and transactions are provided or
             neither are provided.
         """
@@ -430,12 +434,12 @@ class Client(object):
     async def transaction(self, budget_id: str, transaction_id: str) -> dict:
         """Returns a single transaction.
 
-        Corresponds to the /budgets/{budget_id}/transactions/{transaction_id}
+        Corresponds to the `/budgets/{budget_id}/transactions/{transaction_id}`
         endpoint.
 
         :param budget_id: The ID of the budget.
         :param transaction_id: The ID of the transaction.
-        :returns:
+        :returns: A dict of the requested transaction.
         """
         return await self._request(
             '/budgets/{}/transactions/{}'.format(budget_id, transaction_id),
@@ -445,14 +449,15 @@ class Client(object):
             self, budget_id: str, transaction_id: str, data: dict) -> dict:
         """Updates a single transaction.
 
-        Corresponds to the /budgets/{budget_id}/transactions/{transaction_id}
+        Corresponds to the `/budgets/{budget_id}/transactions/{transaction_id}`
         endpoint.
 
         :param budget_id: The ID of the budget.
         :param transaction_id: The ID of the transaction.
         :param data: A dict containing the fields/values to update.
-        :returns:
+        :returns: A dict of the updated transaction.
         """
+        data = {'transaction': data}
         return await self._request(
             '/budgets/{}/transactions/{}'.format(budget_id, transaction_id),
             'PUT', body=data)
@@ -463,7 +468,7 @@ class Client(object):
         """Returns all transactions for a specified account.
 
         Corresponds to the
-        /budgets/{budget_id}/accounts/{account_id}/transactions endpoint.
+        `/budgets/{budget_id}/accounts/{account_id}/transactions` endpoint.
 
         :param budget_id: The ID of the budget.
         :param account_id: The ID of the account.
@@ -476,7 +481,7 @@ class Client(object):
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
-        :returns:
+        :returns: A dict of all transactions for the requested account.
         """
         params = {}
         if last_knowledge_of_server is not None:
@@ -495,7 +500,7 @@ class Client(object):
         """Returns all transactions for a specified category.
 
         Corresponds to the
-        /budgets/{budget_id}/categories/{category_id}/transactions endpoint.
+        `/budgets/{budget_id}/categories/{category_id}/transactions` endpoint.
 
         :param budget_id: The ID of the budget.
         :param category_id: The ID of the category.
@@ -508,7 +513,7 @@ class Client(object):
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
-        :returns:
+        :returns: A dict of all transactions for the requested category.
         """
         params = {}
         if last_knowledge_of_server is not None:
@@ -527,7 +532,7 @@ class Client(object):
         """Returns all transactions for a specified payee.
 
         Corresponds to the
-        /budgets/{budget_id}/payees/{payee_id}/transactions endpoint.
+        `/budgets/{budget_id}/payees/{payee_id}/transactions` endpoint.
 
         :param budget_id: The ID of the budget.
         :param payee_id: The ID of the payee.
@@ -540,7 +545,7 @@ class Client(object):
         :param last_knowledge_of_server: The starting server knowledge. If
             provided, only entities that have changed since
             last_knowledge_of_server will be included.
-        :returns:
+        :returns: A dict of all transactions for the requested payee.
         """
         params = {}
         if last_knowledge_of_server is not None:
@@ -556,10 +561,11 @@ class Client(object):
     async def scheduled_transactions(self, budget_id: str) -> dict:
         """Returns all scheduled transactions.
 
-        Corresponds to the /budgets/{budget_id}/scheduled_transactions endpoint.
+        Corresponds to the `/budgets/{budget_id}/scheduled_transactions`
+        endpoint.
 
         :param budget_id: The ID of the budget.
-        :returns:
+        :returns: A dict of all scheduled transactions.
         """
         return await self._request(
             '/budgets/{}/scheduled_transactions'.format(budget_id), 'GET')
@@ -569,12 +575,12 @@ class Client(object):
         """Returns all scheduled transactions.
 
         Corresponds to the
-        /budgets/{budget_id}/scheduled_transactions/{scheduled_transaction_id}
+        `/budgets/{budget_id}/scheduled_transactions/{scheduled_transaction_id}`
         endpoint.
 
         :param budget_id: The ID of the budget.
         :param scheduled_transaction_id: The ID of the scheduled transaction.
-        :returns:
+        :returns: A dict of all scheduled transactions.
         """
         return await self._request(
             '/budgets/{}/scheduled_transactions/{}'.format(

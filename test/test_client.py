@@ -1,4 +1,5 @@
 import asyncio
+from unittest import mock
 
 import aiohttp
 import pytest
@@ -25,6 +26,22 @@ def test_request_clienterror(client):
         mock_req.get(
             BASE_URL + '/foo', exception=aiohttp.ClientError('timeout'))
         with pytest.raises(aiohttp.ClientError, match='timeout'):
+            client.loop.run_until_complete(client._request('/foo', 'GET'))
+
+
+@mock.patch('aioynab.client.json')
+def test_request_rate_limit_error(mock_json, client):
+    mock_json.loads.return_value = {
+        'error': {
+            'id': '429',
+            'detail': 'rate limit',
+        },
+    }
+    with aioresponses() as mock_req:
+        mock_req.get(
+            BASE_URL + '/foo', payload='{"error": "rate limit"}',
+            headers={'Content-Type': 'application/octet'}, status=429)
+        with pytest.raises(YNABAPIError, match='rate limit'):
             client.loop.run_until_complete(client._request('/foo', 'GET'))
 
 
