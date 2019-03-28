@@ -7,7 +7,7 @@ YNAB_ API client implemented using python 3 asyncio.
 Install
 -------
 
-aioynab can easily be installed using pip:
+aioynab can easily be installed using pip and python >= 3.5.3:
 
 .. code-block:: bash
 
