@@ -49,6 +49,7 @@ setup(
         ],
         'tests': [
             'aioresponses',
+            'codecov',
             'coverage >= 4.4.1, < 5.0.0',
             'flake8 >= 3.3.0, < 4.0.0',
             'pytest >= 4.0.0, < 5.0.0',
