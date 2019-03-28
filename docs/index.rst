@@ -1,6 +1,6 @@
 aioynab
 =======
-|build| |docs| |codecov|
+|pypi| |pythonversions| |docs| |build| |codecov|
 
 YNAB_ API client implemented using python 3 asyncio.
 
@@ -90,3 +90,13 @@ Module Documentation
     :alt: Code Coverage
     :scale: 100%
     :target: https://codecov.io/gh/boralyl/aioynab
+
+.. |pypi| image:: https://badge.fury.io/py/aioynab.svg
+    :alt: Pypi
+    :scale: 100%
+    :target: https://pypi.org/project/aioynab/
+
+.. |pythonversions| image:: https://img.shields.io/pypi/pyversions/aioynab.svg
+    :alt: Python Versions
+    :scale: 100%
+    :target: https://pypi.org/project/aioynab/
