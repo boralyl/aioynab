@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 from typing import List
 
@@ -69,15 +70,29 @@ class Client(object):
             logging.exception('Error requesting %s %s', method, url)
             raise
 
-        json = await response.json()
-        if response.status >= 400 or 'error' in json:
-            error = json['error']
+        try:
+            data = await response.json()
+        except aiohttp.ContentTypeError:
+            # 429 responses are not returned as json responses, but can be
+            # parsed as such.
+            text = await response.text()
+            try:
+                data = json.loads(text)
+            except ValueError:
+                logging.exception('Error parsing response as json: %s', text)
+                raise
+
+        if response.status >= 400 or 'error' in data:
+            # @TODO: X-Rate-Limit header does not appear to be returned in
+            # the response headers when a 429 error occurs.  Open a ticket and
+            # come back to that later.
+            error = data['error']
             logging.error(
                 '%s Error requesting %s %s: %s', response.status, method, url,
                 error['detail'])
             raise YNABAPIError(response.status, error)
 
-        return json['data']
+        return data['data']
 
     async def user(self) -> dict:
         """Returns authenticated user information.
@@ -299,7 +314,7 @@ class Client(object):
             'GET')
 
     async def budget_months(
-            self, budget_id: str, last_knowledge_of_server: int) -> dict:
+            self, budget_id: str, last_knowledge_of_server: int = None) -> dict:
         """Returns all budget months.
 
         Corresponds to the /budgets/{budget_id}/months endpoint.
