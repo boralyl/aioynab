@@ -1,11 +1,17 @@
+# Disable sudo to speed up the build
 sudo: false
+# Set the build language to Python
 language: python
+# xenial dist required for python3.7
 dist: xenial
 python: 
   - "3.5"
   - "3.6"
   - "3.7"
-install: pip install tox-travis
+# Install the codecov/tox pip dependency
+install: pip install tox-travis codecov
+# Run the build
 script: tox
+# Push the results back to codecov
 after_success:
-  - bash < (curl -s https://codecov.io/bash)
+  - codecov
