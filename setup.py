@@ -38,7 +38,6 @@ setup(
     ],
     install_requires=[
         'aiohttp >= 3.0.0, < 4.0.0',
-        'uvloop >= 0.12.0, < 0.13.0',
     ],
     extras_require={
         'docs': [
@@ -54,5 +53,8 @@ setup(
             'flake8 >= 3.3.0, < 4.0.0',
             'pytest >= 4.0.0, < 5.0.0',
         ],
+        'uvloop': [
+            'uvloop >= 0.12.0, < 0.13.0',
+        ]
     },
 )

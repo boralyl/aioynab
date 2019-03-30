@@ -4,10 +4,12 @@ import logging
 from typing import List
 
 import aiohttp
-import uvloop
+try:
+    import uvloop
+    uvloop.install()
+except ImportError:
+    pass
 
-
-uvloop.install()
 
 #: The base API URL for YNAB.
 BASE_URL = 'https://api.youneedabudget.com/v1'
