@@ -4,11 +4,6 @@ import logging
 from typing import List
 
 import aiohttp
-try:
-    import uvloop
-    uvloop.install()
-except ImportError:
-    pass
 
 
 #: The base API URL for YNAB.
